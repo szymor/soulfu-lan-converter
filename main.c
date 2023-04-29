@@ -155,9 +155,9 @@ int to_txt(void)
 	FILE *input = fopen(input_path, "rb");
 	unsigned char buff[4];
 	fread(buff, 1, 4, input);
-	int lines_num = read_big_endian(buff);
+	unsigned int lines_num = read_big_endian(buff);
 	fseek(input, lines_num * 4 + 4, SEEK_SET);
-	printf("Number of lines: %d\n", lines_num);
+	printf("Number of lines: %u\n", lines_num);
 
 	FILE *output = fopen(output_path, "wb");
 	int data;
@@ -176,4 +176,50 @@ int to_txt(void)
 int to_lan(void)
 {
 	printf("Input path: %s\nOutput path: %s\n", input_path, output_path);
+
+	// count lines
+	unsigned int lines_num = 1;
+	FILE *input = fopen(input_path, "rb");
+	int data;
+	while (data = fgetc(input), data != EOF)
+	{
+		if ('\n' == data)
+			++lines_num;
+	}
+	fclose(input);
+	printf("Number of lines: %u\n", lines_num);
+
+	// do the rest
+	unsigned char buff[4];
+
+	write_big_endian(buff, lines_num);
+	FILE *output = fopen(output_path, "wb");
+	fwrite(buff, 1, 4, output);
+	input = fopen(input_path, "rb");
+
+	unsigned int offset = 4 + lines_num * 4;
+	for (int i = 0; i < lines_num; ++i)
+	{
+		// fill index
+		fseek(output, 4 + i * 4, SEEK_SET);
+		write_big_endian(buff, offset);
+		fwrite(buff, 1, 4, output);
+
+		// dump a line
+		fseek(output, offset, SEEK_SET);
+		int data;
+		while (data = fgetc(input), '\n' != data && EOF != data)
+		{
+			fputc(data, output);
+			++offset;
+		}
+		if ('\n' == data)
+		{
+			fputc('\0', output);
+			++offset;
+		}
+	}
+
+	fclose(input);
+	fclose(output);
 }
