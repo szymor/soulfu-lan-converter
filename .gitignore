@@ -1,0 +1,5 @@
+slc
+*.exe
+*.o
+*.LAN
+*.LAN.TXT
