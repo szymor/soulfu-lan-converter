@@ -153,6 +153,12 @@ int to_txt(void)
 	printf("Input path: %s\nOutput path: %s\n", input_path, output_path);
 
 	FILE *input = fopen(input_path, "rb");
+	if (!input)
+	{
+		printf("Error: cannot open input file.\n");
+		return EC_NOFILE;
+	}
+
 	unsigned char buff[4];
 	fread(buff, 1, 4, input);
 	unsigned int lines_num = read_big_endian(buff);
@@ -180,6 +186,12 @@ int to_lan(void)
 	// count lines
 	unsigned int lines_num = 1;
 	FILE *input = fopen(input_path, "rb");
+	if (!input)
+	{
+		printf("Error: cannot open input file.\n");
+		return EC_NOFILE;
+	}
+
 	int data;
 	while (data = fgetc(input), data != EOF)
 	{
